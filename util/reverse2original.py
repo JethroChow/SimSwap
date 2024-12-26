@@ -72,20 +72,25 @@ def postprocess(swapped_face, target, target_mask,smooth_mask):
     result = result[:,:,::-1]# .astype(np.uint8)
     return result
 
-def reverse2wholeimage(b_align_crop_tenor_list,swaped_imgs, mats, crop_size, oriimg, logoclass, save_path = '', \
-                    no_simswaplogo = False,pasring_model =None,norm = None, use_mask = False):
+def reverse2wholeimage(frame_align_crop_tenor_list,
+                       swap_result_list, 
+                       frame_mat_list, 
+                       crop_size, 
+                       frame,
+                       pasring_model =None,
+                       norm = None, 
+                       use_mask = False):
 
     target_image_list = []
     img_mask_list = []
+    
     if use_mask:
         smooth_mask = SoftErosion(kernel_size=17, threshold=0.9, iterations=7).cuda()
     else:
         pass
 
-    # print(len(swaped_imgs))
-    # print(mats)
-    # print(len(b_align_crop_tenor_list))
-    for swaped_img, mat ,source_img in zip(swaped_imgs, mats,b_align_crop_tenor_list):
+
+    for swaped_img, mat ,source_img in zip(swap_result_list, frame_mat_list,frame_align_crop_tenor_list):
         swaped_img = swaped_img.cpu().detach().numpy().transpose((1, 2, 0))
         img_white = np.full((crop_size,crop_size), 255, dtype=float)
 
@@ -100,7 +105,7 @@ def reverse2wholeimage(b_align_crop_tenor_list,swaped_imgs, mats, crop_size, ori
         mat_rev[1][1] = -mat[0][0]/div2
         mat_rev[1][2] = -(mat[0][2]*mat[1][0]-mat[0][0]*mat[1][2])/div2
 
-        orisize = (oriimg.shape[1], oriimg.shape[0])
+        orisize = (frame.shape[1], frame.shape[0])
         if use_mask:
             source_img_norm = norm(source_img)
             source_img_512  = F.interpolate(source_img_norm,size=(512,512))
@@ -134,6 +139,7 @@ def reverse2wholeimage(b_align_crop_tenor_list,swaped_imgs, mats, crop_size, ori
         #     kernel = np.ones((40,40),np.uint8)
         #     img_mask = cv2.erode(img_mask,kernel,iterations = 1)
         # else:
+        
         kernel = np.ones((40,40),np.uint8)
         img_mask = cv2.erode(img_mask,kernel,iterations = 1)
         kernel_size = (20, 20)
@@ -165,11 +171,10 @@ def reverse2wholeimage(b_align_crop_tenor_list,swaped_imgs, mats, crop_size, ori
 
     # target_image /= 255
     # target_image = 0
-    img = np.array(oriimg, dtype=np.float)
+    img = np.array(frame, dtype=np.float)
     for img_mask, target_image in zip(img_mask_list, target_image_list):
         img = img_mask * target_image + (1-img_mask) * img
         
     final_img = img.astype(np.uint8)
-    if not no_simswaplogo:
-        final_img = logoclass.apply_frames(final_img)
-    cv2.imwrite(save_path, final_img)
+
+    cv2.imwrite("temp", final_img)
