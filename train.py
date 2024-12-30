@@ -1,15 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding:utf-8 -*-
-#############################################################
-# File: train.py
-# Created Date: Monday December 27th 2021
-# Author: Chen Xuanhong
-# Email: chenxuanhongzju@outlook.com
-# Last Modified:  Friday, 22nd April 2022 10:49:26 am
-# Modified By: Chen Xuanhong
-# Copyright (c) 2021 Shanghai Jiao Tong University
-#############################################################
-
 import os
 import time
 import random
